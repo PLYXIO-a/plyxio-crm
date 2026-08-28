@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plyxio CRM</title>
+<title>Plyxio</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -313,6 +313,16 @@ select.filter-sel{background:var(--s2);border:1px solid var(--border);border-rad
 #configNotice strong{color:var(--warn);}
 #configNotice code{background:var(--s3);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:11px;}
 
+/* ── Unified app: client-portal vs CRM visibility ── */
+.client-only{display:none;}
+body.role-client .crm-only{display:none !important;}
+body.role-client .sidebar{display:none !important;}
+body.role-client .client-only{display:block !important;}
+body.role-client .nav-tab.client-only,body.role-client .mob-nav-item.client-only{display:flex !important;}
+.proj-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:border-color .15s;}
+.proj-card:hover{border-color:var(--accent);}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;padding:16px 20px;}
+
 /* ── Status select dark mode fix ── */
 select{color:var(--text) !important;}
 select option{background:var(--s1) !important;color:var(--text) !important;}
@@ -447,8 +457,8 @@ body.light .activity-item{border-color:#e2e8f0;}
     <div class="auth-logo">
       <div class="auth-badge">PLYXIO</div>
       <div>
-        <div class="auth-title">CRM</div>
-        <div class="auth-sub">// lead pipeline manager</div>
+        <div class="auth-title">Workspace</div>
+        <div class="auth-sub">// sign in to continue</div>
       </div>
     </div>
     <div class="auth-err" id="authErr"></div>
@@ -479,17 +489,19 @@ body.light .activity-item{border-color:#e2e8f0;}
 
   <!-- Navbar -->
   <div class="navbar">
-    <button class="hamburger" onclick="toggleMobileSidebar()" title="Filters">☰</button>
+    <button class="hamburger crm-only" onclick="toggleMobileSidebar()" title="Filters">☰</button>
     <div class="nav-logo">
       <div class="nav-badge">PLYXIO</div>
       <div class="nav-title">CRM</div>
     </div>
     <div class="nav-tabs" id="navTabs">
-      <div class="nav-tab active" data-view="pipeline">🏗 Pipeline</div>
-      <div class="nav-tab" data-view="table">📋 Leads</div>
-      <div class="nav-tab admin-only" data-view="admin">📊 Admin</div>
-      <div class="nav-tab admin-only" data-view="activity">⚡ Activity</div>
-      <div class="nav-tab admin-only" data-view="users">👥 Users</div>
+      <div class="nav-tab active crm-only" data-view="pipeline">🏗 Pipeline</div>
+      <div class="nav-tab crm-only" data-view="table">📋 Leads</div>
+      <div class="nav-tab admin-only crm-only" data-view="admin">📊 Admin</div>
+      <div class="nav-tab admin-only crm-only" data-view="activity">⚡ Activity</div>
+      <div class="nav-tab admin-only crm-only" data-view="users">👥 Users</div>
+      <div class="nav-tab client-only" data-view="projects">🗂 Projects</div>
+      <div class="nav-tab client-only" data-view="invoices">🧾 Invoices</div>
       <div class="nav-tab" data-view="settings">⚙ Settings</div>
     </div>
     <div class="nav-right">
@@ -500,10 +512,10 @@ body.light .activity-item{border-color:#e2e8f0;}
         <span id="navUserName">—</span>
         <span class="role-badge" id="navRoleBadge">agent</span>
       </div>
-      <button class="btn btn-primary btn-sm mob-add" onclick="showAddLeadModal()" title="Add Lead">+ Add Lead</button>
-      <button class="btn btn-ghost btn-sm" onclick="showImportModal()">⬆ Import</button>
-      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
-      <div class="bell-wrap" onclick="showReminders()" title="Follow-up reminders">🔔<div class="bell-dot" id="bellDot"></div></div>
+      <button class="btn btn-primary btn-sm mob-add crm-only" onclick="showAddLeadModal()" title="Add Lead">+ Add Lead</button>
+      <button class="btn btn-ghost btn-sm crm-only" onclick="showImportModal()">⬆ Import</button>
+      <button class="btn btn-ghost btn-sm crm-only" onclick="exportCSV()">⬇ CSV</button>
+      <div class="bell-wrap crm-only" onclick="showReminders()" title="Follow-up reminders">🔔<div class="bell-dot" id="bellDot"></div></div>
       <div class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Toggle light/dark">🌙</div>
       <button class="btn btn-ghost btn-sm" onclick="signOut()" style="color:var(--danger)">Sign out</button>
     </div>
@@ -512,11 +524,13 @@ body.light .activity-item{border-color:#e2e8f0;}
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
   <!-- Mobile nav menu (separate from sidebar) -->
   <div class="mob-nav-menu" id="mobNavMenu">
-    <div class="mob-nav-item" data-view="pipeline">🏗 Pipeline</div>
-    <div class="mob-nav-item" data-view="table">📋 Leads</div>
-    <div class="mob-nav-item admin-only" data-view="admin">📊 Admin</div>
-    <div class="mob-nav-item admin-only" data-view="activity">⚡ Activity</div>
-    <div class="mob-nav-item admin-only" data-view="users">👥 Users</div>
+    <div class="mob-nav-item crm-only" data-view="pipeline">🏗 Pipeline</div>
+    <div class="mob-nav-item crm-only" data-view="table">📋 Leads</div>
+    <div class="mob-nav-item admin-only crm-only" data-view="admin">📊 Admin</div>
+    <div class="mob-nav-item admin-only crm-only" data-view="activity">⚡ Activity</div>
+    <div class="mob-nav-item admin-only crm-only" data-view="users">👥 Users</div>
+    <div class="mob-nav-item client-only" data-view="projects">🗂 Projects</div>
+    <div class="mob-nav-item client-only" data-view="invoices">🧾 Invoices</div>
     <div class="mob-nav-item" data-view="settings">⚙ Settings</div>
   </div>
   <div class="mob-nav-overlay" id="mobNavOverlay" onclick="closeMobileMenu()"></div>
@@ -608,6 +622,8 @@ body.light .activity-item{border-color:#e2e8f0;}
       <div id="vAdmin" style="display:none"></div>
       <div id="vActivity" style="display:none"></div>
       <div id="vUsers" style="display:none"></div>
+      <div id="vProjects" style="display:none"></div>
+      <div id="vInvoices" style="display:none"></div>
       <div id="vSettings" style="display:none"></div>
     </div>
   </div>
@@ -780,6 +796,16 @@ const S_COLOR = {
 };
 const AVATAR_COLORS = ['#6c47ff','#00d4aa','#ff6b35','#f5a623','#f04444','#9b6bff','#00a88a'];
 
+// ── Client portal: status labels ───────────────────────────────
+const PROJECT_STATUS_LABELS = { planning:'📋 Planning', in_progress:'🚧 In Progress', review:'👀 Review', completed:'✅ Completed', on_hold:'⏸ On Hold', cancelled:'❌ Cancelled' };
+const TASK_STATUS_LABELS    = { todo:'📝 To Do', in_progress:'🚧 In Progress', review:'👀 Review', done:'✅ Done' };
+const INVOICE_STATUS_LABELS = { draft:'📄 Draft', sent:'📤 Sent', viewed:'👁 Viewed', paid:'✅ Paid', overdue:'⚠ Overdue', void:'Void' };
+const INVOICE_STATUS_COLOR  = { draft:'#64748b', sent:'#6c47ff', viewed:'#0099ff', paid:'#00d4aa', overdue:'#f04444', void:'#64748b' };
+
+let clientProjects = [];
+let clientInvoices = [];
+let clientCompanyName = '';
+
 let currentUser    = null;
 let currentRole    = 'agent';
 let currentProfile = {};
@@ -928,11 +954,29 @@ async function bootApp(user) {
   }
   updateMobNavAdminItems();
 
-  await Promise.all([loadLeads(), loadUsers(), loadActivity()]);
-  subscribeRealtime();
-  setupNav();
-  renderAll();
-  checkReminders();
+  const navTitleEl = document.querySelector('.nav-title');
+  if (navTitleEl) navTitleEl.textContent = currentRole === 'client' ? 'Client Portal' : 'CRM';
+
+  if (currentRole === 'client') {
+    document.body.classList.add('role-client');
+    await loadClientData();
+    setupNav();
+    // Land clients on Projects, not the (hidden) CRM Pipeline tab
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.nav-tab[data-view="projects"]')?.classList.add('active');
+    currentView = 'projects';
+    ['vPipeline','vTable','vAdmin','vActivity','vUsers','vProjects','vInvoices','vSettings'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+    document.getElementById('vProjects').style.display = 'block';
+    renderAll();
+  } else {
+    await Promise.all([loadLeads(), loadUsers(), loadActivity()]);
+    subscribeRealtime();
+    setupNav();
+    renderAll();
+    checkReminders();
+  }
 }
 
 // ── Check session on load ───────────────────────────────────
@@ -964,6 +1008,106 @@ async function loadActivity() {
   activityLog = data || [];
 }
 
+// ── Client portal: data loading ─────────────────────────────
+async function loadClientData() {
+  const [{ data: projs }, { data: invs }] = await Promise.all([
+    sb.from('projects').select('*').order('created_at', { ascending: false }),
+    sb.from('invoices').select('*').order('issue_date', { ascending: false })
+  ]);
+  clientProjects = projs || [];
+  clientInvoices = invs || [];
+  if (currentProfile.client_id) {
+    const { data: c } = await sb.from('clients').select('name,company').eq('id', currentProfile.client_id).single();
+    clientCompanyName = c?.company || c?.name || '';
+  }
+}
+
+// ── Client portal: Projects view ────────────────────────────
+function renderClientProjects() {
+  document.getElementById('vProjects').innerHTML = `
+    <div style="padding:16px 20px">
+      <div style="font-size:15px;font-weight:700;margin-bottom:14px">🗂 Your Projects${clientCompanyName?` — ${x(clientCompanyName)}`:''}</div>
+      ${clientProjects.length ? '' : `<div class="empty"><div class="empty-icon">🗂</div><div>No projects yet</div></div>`}
+    </div>
+    ${clientProjects.length ? `<div class="proj-grid">
+      ${clientProjects.map(p => `
+        <div class="proj-card" onclick="openProjectPanel('${x(p.id)}')">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">
+            <div style="font-size:13px;font-weight:700;line-height:1.3">${x(p.name)}</div>
+            <span class="pill" style="background:rgba(108,71,255,.12);color:#9b6bff;white-space:nowrap">${PROJECT_STATUS_LABELS[p.status]||p.status}</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${x(p.service_type||'')}</div>
+          <div style="font-size:11px;color:var(--muted)">${p.due_date?`📅 Due ${new Date(p.due_date).toLocaleDateString()}`:'No due date set'}</div>
+        </div>`).join('')}
+    </div>` : ''}`;
+}
+
+async function openProjectPanel(id) {
+  const p = clientProjects.find(z => z.id === id); if (!p) return;
+  const [{ data: tasks }, { data: comments }] = await Promise.all([
+    sb.from('tasks').select('*').eq('project_id', id).order('created_at', { ascending: true }),
+    sb.from('comments').select('*, profiles(full_name)').eq('project_id', id).order('created_at', { ascending: true })
+  ]);
+  const tl = tasks || [], cm = comments || [];
+
+  document.getElementById('panelInner').innerHTML = `
+    <div class="ph"><div class="ph-name">${x(p.name)}</div><button class="ph-close" onclick="closePanel()">✕</button></div>
+    <span class="pill" style="background:rgba(108,71,255,.12);color:#9b6bff;margin-bottom:12px;display:inline-block">${PROJECT_STATUS_LABELS[p.status]||p.status}</span>
+
+    <div class="p-section">
+      <div class="p-sec-title">Details</div>
+      <div class="p-row"><div class="p-key">Service</div><div class="p-val">${x(p.service_type||'—')}</div></div>
+      <div class="p-row"><div class="p-key">Start</div><div class="p-val">${p.start_date?new Date(p.start_date).toLocaleDateString():'—'}</div></div>
+      <div class="p-row"><div class="p-key">Due</div><div class="p-val">${p.due_date?new Date(p.due_date).toLocaleDateString():'—'}</div></div>
+      <div class="p-row" style="flex-direction:column"><div class="p-key" style="margin-bottom:5px">Description</div><div class="p-val">${x(p.description||'—')}</div></div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-sec-title">Tasks</div>
+      ${tl.length ? tl.map(t => `<div class="p-row"><div class="p-key">${x(TASK_STATUS_LABELS[t.status]||t.status)}</div><div class="p-val">${x(t.title)}</div></div>`).join('') : '<div style="font-size:11px;color:var(--muted);padding:4px 0">No tasks yet.</div>'}
+    </div>
+
+    <div class="p-section">
+      <div class="p-sec-title">Comments</div>
+      <div id="pc-list">${cm.length ? cm.map(c => `<div class="call-entry"><div class="call-top"><span style="font-size:11px;font-weight:600">${x(c.profiles?.full_name||'Team')}</span><span class="call-time">${fmt(c.created_at)}</span></div><div class="call-note">${x(c.body)}</div></div>`).join('') : '<div style="font-size:11px;color:var(--muted);padding:6px 0">No comments yet.</div>'}</div>
+      <div class="call-add-row">
+        <input class="cinput" id="pc-input" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addProjectComment('${x(id)}')">
+        <button class="btn btn-ghost btn-sm" onclick="addProjectComment('${x(id)}')">Send</button>
+      </div>
+    </div>`;
+
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('panel').classList.add('open');
+}
+
+async function addProjectComment(projectId) {
+  const input = document.getElementById('pc-input');
+  const body = input.value.trim();
+  if (!body) return;
+  const { error } = await sb.from('comments').insert({ project_id: projectId, author_id: currentUser.id, body });
+  if (error) { toast('❌ ' + error.message); return; }
+  input.value = '';
+  openProjectPanel(projectId);
+}
+
+// ── Client portal: Invoices view ────────────────────────────
+function renderClientInvoices() {
+  document.getElementById('vInvoices').innerHTML = `
+    <div style="padding:16px 20px">
+      <div style="font-size:15px;font-weight:700;margin-bottom:14px">🧾 Invoices</div>
+      ${clientInvoices.length ? `<div class="tbl-wrap" style="padding:0">
+        <table class="tbl"><thead><tr><th>Invoice #</th><th>Amount</th><th>Status</th><th>Issued</th><th>Due</th></tr></thead>
+        <tbody>${clientInvoices.map(i => `<tr>
+          <td class="td-name">${x(i.invoice_number||'—')}</td>
+          <td style="font-family:var(--mono)">${x(i.currency||'')} ${Number(i.amount||0).toLocaleString()}</td>
+          <td><span class="pill" style="background:${INVOICE_STATUS_COLOR[i.status]||'#64748b'}22;color:${INVOICE_STATUS_COLOR[i.status]||'#64748b'}">${INVOICE_STATUS_LABELS[i.status]||i.status}</span></td>
+          <td style="font-size:11px;color:var(--muted)">${i.issue_date?new Date(i.issue_date).toLocaleDateString():'—'}</td>
+          <td style="font-size:11px;color:var(--muted)">${i.due_date?new Date(i.due_date).toLocaleDateString():'—'}</td>
+        </tr>`).join('')}</tbody></table>
+      </div>` : `<div class="empty"><div class="empty-icon">🧾</div><div>No invoices yet</div></div>`}
+    </div>`;
+}
+
 // ── Realtime subscriptions ──────────────────────────────────
 function subscribeRealtime() {
   if (!sb) return;
@@ -985,7 +1129,7 @@ function setupNav() {
       document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       currentView = tab.dataset.view;
-      ['vPipeline','vTable','vAdmin','vActivity','vUsers','vSettings'].forEach(id => {
+      ['vPipeline','vTable','vAdmin','vActivity','vUsers','vProjects','vInvoices','vSettings'].forEach(id => {
         document.getElementById(id).style.display = 'none';
       });
       document.getElementById('v' + cap(currentView)).style.display = 'block';
@@ -1009,6 +1153,8 @@ function renderAll() {
   if (currentView === 'admin')     renderAdmin();
   if (currentView === 'activity')  renderActivity();
   if (currentView === 'users')     renderUsers();
+  if (currentView === 'projects')  renderClientProjects();
+  if (currentView === 'invoices')  renderClientInvoices();
   if (currentView === 'settings')  renderSettings();
 }
 
@@ -1986,7 +2132,7 @@ function renderSettings() {
         </div>
       </div>
 
-      <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:14px">
+      ${currentRole !== 'client' ? `<div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:14px">
         <div style="font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border)">💬 WhatsApp Message Template</div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6">
           This message is sent when you click the WhatsApp button on a lead.<br>
@@ -1996,7 +2142,7 @@ function renderSettings() {
           <textarea class="notes-ta" id="st-wa-msg" style="min-height:80px;font-size:12px">${x(waMessage)}</textarea>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:4px">Preview: <em style="color:var(--text)">${x(waMessage.replace('{name}','Smith Plumbing'))}</em></div>
-      </div>
+      </div>` : ''}
 
       <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:14px">
         <div style="font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border)">🔑 Change Password</div>
@@ -2103,7 +2249,7 @@ document.querySelectorAll('.mob-nav-item').forEach(item => {
     if (matchingTab) matchingTab.classList.add('active');
     currentView = item.dataset.view;
     document.getElementById('tbTitle')?.textContent;
-    ['vPipeline','vTable','vAdmin','vActivity','vUsers','vSettings'].forEach(id => {
+    ['vPipeline','vTable','vAdmin','vActivity','vUsers','vProjects','vInvoices','vSettings'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
