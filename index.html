@@ -504,6 +504,7 @@ body.light .activity-item{border-color:#e2e8f0;}
     <div class="nav-tabs" id="navTabs">
       <div class="nav-tab active" data-view="pipeline">🏗 Pipeline</div>
       <div class="nav-tab" data-view="table">📋 Leads</div>
+      <div class="nav-tab" data-view="lists">🗂 Lists</div>
       <div class="nav-tab admin-only" data-view="admin">📊 Admin</div>
       <div class="nav-tab admin-only" data-view="activity">⚡ Activity</div>
       <div class="nav-tab admin-only" data-view="users">👥 Users</div>
@@ -531,6 +532,7 @@ body.light .activity-item{border-color:#e2e8f0;}
   <div class="mob-nav-menu" id="mobNavMenu">
     <div class="mob-nav-item" data-view="pipeline">🏗 Pipeline</div>
     <div class="mob-nav-item" data-view="table">📋 Leads</div>
+    <div class="mob-nav-item" data-view="lists">🗂 Lists</div>
     <div class="mob-nav-item admin-only" data-view="admin">📊 Admin</div>
     <div class="mob-nav-item admin-only" data-view="activity">⚡ Activity</div>
     <div class="mob-nav-item admin-only" data-view="users">👥 Users</div>
@@ -567,6 +569,15 @@ body.light .activity-item{border-color:#e2e8f0;}
             <div class="filter-chip" data-val="converted" onclick="setFilter('status','converted',this)"><span>🎉 Converted</span><span class="chip-count" id="cnt-status-converted">0</span></div>
             <div class="filter-chip" data-val="rejected" onclick="setFilter('status','rejected',this)"><span>❌ Rejected</span><span class="chip-count" id="cnt-status-rejected">0</span></div>
           </div>
+        </div>
+      </div>
+
+      <!-- List filter -->
+      <div class="sb-section">
+        <div class="sb-label" onclick="toggleSection('listSection')">Lists <span class="sb-label-arrow" id="listArrow">▾</span></div>
+        <div class="sb-collapsible" id="listSection">
+          <input class="filter-search" id="listSearch" placeholder="Search lists…" oninput="renderListFilterChips(this.value)">
+          <div class="filter-chip-wrap" id="listFilterChips"></div>
         </div>
       </div>
 
@@ -613,8 +624,10 @@ body.light .activity-item{border-color:#e2e8f0;}
         <div class="bulk-actions">
           <select id="bulkStatusSel" class="csel"><option value="">Change status…</option><option value="new">🆕 New</option><option value="contacted">📞 Contacted</option><option value="whatsapp_sent">💬 WhatsApp Sent</option><option value="called">📱 Called</option><option value="linkedin_sent">💼 LinkedIn Sent</option><option value="qualified">✅ Qualified</option><option value="converted">🎉 Converted</option><option value="rejected">❌ Rejected</option></select>
           <select id="bulkAssignSel" class="csel" style="display:none"><option value="">Assign to…</option></select>
+          <select id="bulkListSel" class="csel"><option value="">Add to list…</option></select>
           <button class="bulk-btn" onclick="applyBulkStatus()">Apply Status</button>
           <button class="bulk-btn" onclick="applyBulkAssign()" id="bulkAssignBtn" style="display:none">Assign</button>
+          <button class="bulk-btn" onclick="applyBulkList()">Add to List</button>
           <button class="bulk-btn" onclick="showBulkEditModal()" style="color:var(--accent);border-color:rgba(108,71,255,.3)">✏️ Edit</button>
           <button class="bulk-btn danger" onclick="applyBulkDelete()">🗑 Delete</button>
           <button class="bulk-btn" onclick="clearSelection()">✕ Clear</button>
@@ -622,6 +635,7 @@ body.light .activity-item{border-color:#e2e8f0;}
       </div>
       <div id="vPipeline"></div>
       <div id="vTable" style="display:none"></div>
+      <div id="vLists" style="display:none"></div>
       <div id="vAdmin" style="display:none"></div>
       <div id="vActivity" style="display:none"></div>
       <div id="vUsers" style="display:none"></div>
@@ -648,6 +662,14 @@ body.light .activity-item{border-color:#e2e8f0;}
     <div class="field" id="assignToField" style="display:none">
       <label>Assign all imported leads to</label>
       <select id="assignToSel" class="assign-sel"><option value="">— myself —</option></select>
+    </div>
+    <div class="field">
+      <label>Add to List</label>
+      <select id="importListSel" class="assign-sel" onchange="onImportListSelChange()" style="margin-bottom:6px">
+        <option value="__new__">➕ New list</option>
+        <option value="">— No list —</option>
+      </select>
+      <input class="setting-inp" id="importListName" placeholder="List name (auto-suggested from the data)">
     </div>
     <div class="modal-btns">
       <button class="btn btn-ghost" onclick="closeImportModal()">Cancel</button>
@@ -695,6 +717,9 @@ body.light .activity-item{border-color:#e2e8f0;}
       <div class="field admin-only" id="al-assign-wrap"><label>Assign To</label>
         <select id="al-assign"><option value="">— myself —</option></select>
       </div>
+      <div class="field"><label>List</label>
+        <select id="al-list"><option value="">— No list —</option></select>
+      </div>
       <div class="field" style="grid-column:1/-1"><label>Notes</label><textarea id="al-notes" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:7px;padding:8px;color:var(--text);font-size:12px;font-family:var(--sans);resize:vertical;min-height:60px;outline:none" placeholder="Any notes about this lead…"></textarea></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
@@ -732,6 +757,12 @@ body.light .activity-item{border-color:#e2e8f0;}
         <option value="hot">🔥 Hot</option>
         <option value="warm">♨ Warm</option>
         <option value="cold">❄ Cold</option>
+      </select>
+    </div>
+    <div class="field"><label>Change List</label>
+      <select id="be-list" class="assign-sel">
+        <option value="">— keep current —</option>
+        <option value="__none__">— No list —</option>
       </select>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
@@ -803,12 +834,14 @@ let currentProfile = {};
 let waMessage      = 'Hi! I came across {name} and wanted to reach out.';
 let allLeads       = [];
 let allUsers    = [];
+let allLists    = [];
 let activityLog = [];
 let filterStatus   = '';
 let filterAgent    = '';
 let filterCity     = '';
 let filterCountry  = '';
 let filterIndustry = '';
+let filterList     = '';
 let searchQuery    = '';
 let currentView  = 'pipeline';
 let pipelineView = 'kanban'; // 'kanban' | 'list'
@@ -945,7 +978,7 @@ async function bootApp(user) {
   }
   updateMobNavAdminItems();
 
-  await Promise.all([loadLeads(), loadUsers(), loadActivity()]);
+  await Promise.all([loadLeads(), loadUsers(), loadActivity(), loadLists()]);
   subscribeRealtime();
   setupNav();
   renderAll();
@@ -1029,6 +1062,11 @@ async function loadUsers() {
   allUsers = data || [];
 }
 
+async function loadLists() {
+  const { data } = await sb.from('lists').select('*').order('created_at', { ascending: false });
+  allLists = data || [];
+}
+
 async function loadActivity() {
   const { data } = await sb.from('activity_log')
     .select('*, profiles(full_name)')
@@ -1048,6 +1086,9 @@ function subscribeRealtime() {
       await loadActivity();
       if (currentView === 'activity') renderActivity();
     })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'lists' }, async () => {
+      await loadLists(); renderAll();
+    })
     .subscribe();
 }
 
@@ -1058,7 +1099,7 @@ function setupNav() {
       document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       currentView = tab.dataset.view;
-      ['vPipeline','vTable','vAdmin','vActivity','vUsers','vSettings'].forEach(id => {
+      ['vPipeline','vTable','vLists','vAdmin','vActivity','vUsers','vSettings'].forEach(id => {
         document.getElementById(id).style.display = 'none';
       });
       document.getElementById('v' + cap(currentView)).style.display = 'block';
@@ -1079,6 +1120,7 @@ function renderAll() {
   updateSidebar();
   if (currentView === 'pipeline')  renderPipeline();
   if (currentView === 'table')     renderTable();
+  if (currentView === 'lists')     renderLists();
   if (currentView === 'admin')     renderAdmin();
   if (currentView === 'activity')  renderActivity();
   if (currentView === 'users')     renderUsers();
@@ -1222,14 +1264,17 @@ function kCard(l) {
   const dealVal=l.deal_value?`<span style="font-size:9px;font-family:var(--mono);color:var(--a2)">$${Number(l.deal_value).toLocaleString()}</span>`:'';
   const isSel=selectedIds.has(l.id);
   const statusLabel=STATUS_LABELS[l.status]||cap(l.status||'new');
+  const listInfo=allLists.find(x=>x.id===l.list_id);
+  const listBadge=listInfo?`<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:${x(listInfo.color||'#6c47ff')}22;color:${x(listInfo.color||'#6c47ff')};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;display:inline-block">🗂 ${x(listInfo.name)}</span>`:'';
   return `<div class="lcard${isSel?' selected':''}" data-id="${x(l.id)}" style="${isSel?'border-color:var(--accent);':''}">
     <div class="lc-top">
       <input type="checkbox" class="cb" ${isSel?'checked':''} onclick="toggleSelect(event,'${x(l.id)}')" title="Select">
       <div class="lc-name" style="flex:1">${x(l.name)}</div>
       <span class="lc-score score-${l.score||'cold'}">${l.score==='hot'?'🔥':l.score==='warm'?'♨':'❄'}</span>
     </div>
-    <div style="margin-bottom:4px">
+    <div style="margin-bottom:4px;display:flex;gap:4px;flex-wrap:wrap">
       <span class="sbadge s-${l.status||'new'}" style="font-size:9px">${statusLabel}</span>
+      ${listBadge}
     </div>
     ${loc?`<div class="loc-tag">📍 ${x(loc)}</div>`:''}
     <div class="lc-agent" style="display:flex;align-items:center;justify-content:space-between;gap:4px">
@@ -1271,7 +1316,7 @@ function renderTable() {
     <div class="tbl-wrap">
       <table class="tbl"><thead><tr>
         <th style="width:30px"></th>
-        <th>Business</th><th>Status</th><th>Location</th><th>Score</th>
+        <th>Business</th><th>Status</th><th>Location</th><th>List</th><th>Score</th>
         <th>Phone</th><th>Website</th><th>Assigned</th><th>Deal</th><th></th>
       </tr></thead><tbody>
         ${fl.length ? fl.map(l => {
@@ -1280,6 +1325,7 @@ function renderTable() {
           const country = l.country || extractCountry(l.address||'');
           const loc = [city,country].filter(Boolean).join(', ');
           const isSel = selectedIds.has(l.id);
+          const listInfo = allLists.find(x=>x.id===l.list_id);
           return `<tr style="${isSel?'background:rgba(108,71,255,.06)':''}">
             <td><input type="checkbox" class="cb" ${isSel?'checked':''} onclick="toggleSelect(event,'${x(l.id)}')" style="accent-color:var(--accent)"></td>
             <td>
@@ -1292,6 +1338,7 @@ function renderTable() {
               </select>
             </td>
             <td style="font-size:11px;color:var(--muted);max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x(loc||'—')}</td>
+            <td style="font-size:10px;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${listInfo?`<span style="padding:1px 6px;border-radius:8px;background:${x(listInfo.color||'#6c47ff')}22;color:${x(listInfo.color||'#6c47ff')}">🗂 ${x(listInfo.name)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
             <td><span class="pill pill-${l.score||'cold'}">${l.score==='hot'?'🔥':l.score==='warm'?'♨':'❄'}</span></td>
             <td>${l.phone?`<a href="tel:${x(l.phone)}" style="font-size:11px">${x(l.phone)}</a>`:'<span style="color:var(--muted)">—</span>'}</td>
             <td>${l.website?`<a href="${x(l.website)}" target="_blank" style="font-size:11px">${x((l.domain||l.website).slice(0,18))}</a>`:'<span style="color:var(--muted)">—</span>'}</td>
@@ -1302,7 +1349,7 @@ function renderTable() {
               <button class="btn btn-ghost btn-sm" onclick="openPanel('${x(l.id)}')">✏️</button>
             </div></td>
           </tr>`;
-        }).join('') : `<tr><td colspan="10"><div class="empty"><div class="empty-icon">📋</div><div style="margin-bottom:10px">No leads yet</div><button class="btn btn-primary btn-sm" onclick="showAddLeadModal()">+ Add Lead</button></div></td></tr>`}
+        }).join('') : `<tr><td colspan="11"><div class="empty"><div class="empty-icon">📋</div><div style="margin-bottom:10px">No leads yet</div><button class="btn btn-primary btn-sm" onclick="showAddLeadModal()">+ Add Lead</button></div></td></tr>`}
       </tbody></table>
     </div>`;
 
@@ -1461,6 +1508,127 @@ function renderUsers() {
     </div>`;
 }
 
+// ── Lists ─────────────────────────────────────────────────────
+function suggestListName(leads) {
+  if (!leads || !leads.length) return `Import – ${todayShort()}`;
+  const catCounts = {}, cityCounts = {};
+  leads.forEach(l => {
+    const cat  = (l.category||l.industry||'').trim();
+    const city = (l.city||extractCity(l.address||'')||'').trim();
+    if (cat)  catCounts[cat]   = (catCounts[cat]||0)+1;
+    if (city) cityCounts[city] = (cityCounts[city]||0)+1;
+  });
+  const topCat  = Object.entries(catCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const topCity = Object.entries(cityCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const d = todayShort();
+  if (topCat && topCity) return `${pluralize(topCat)} – ${topCity} – ${d}`;
+  if (topCat)  return `${pluralize(topCat)} – ${d}`;
+  if (topCity) return `Leads – ${topCity} – ${d}`;
+  return `Import – ${d}`;
+}
+function pluralize(w) { return /s$/i.test(w) ? w : w + 's'; }
+function todayShort() { return new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function randomListColor() {
+  const palette = ['#6c47ff','#00d4aa','#ff6b35','#f5a623','#f04444','#9b6bff','#0099ff','#25D366'];
+  return palette[Math.floor(Math.random()*palette.length)];
+}
+
+function renderLists() {
+  const counts = {};
+  allLeads.forEach(l => { if (l.list_id) counts[l.list_id] = (counts[l.list_id]||0)+1; });
+
+  document.getElementById('vLists').innerHTML = `
+    <div class="users-wrap">
+      <div class="users-header">
+        <div class="users-title">🗂 Lists</div>
+        <button class="btn btn-primary btn-sm" onclick="showNewListModal()">+ New List</button>
+      </div>
+      ${allLists.length ? allLists.map(l => `
+        <div class="user-row">
+          <div style="width:14px;height:14px;border-radius:4px;background:${x(l.color||'#6c47ff')};flex-shrink:0"></div>
+          <div class="ur-info" style="cursor:pointer" onclick="viewList('${x(l.id)}')">
+            <div class="ur-name">${x(l.name)}</div>
+            <div class="ur-email">${counts[l.id]||0} lead${counts[l.id]===1?'':'s'} · created ${fmt(l.created_at)}</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="viewList('${x(l.id)}')">👁 View</button>
+            <button class="btn btn-ghost btn-sm" onclick="renameList('${x(l.id)}')">✏️ Rename</button>
+            <button class="btn btn-ghost btn-sm" onclick="showMergeListModal('${x(l.id)}')">🔀 Merge</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteList('${x(l.id)}')" style="color:var(--danger);border-color:rgba(240,68,68,.3)">🗑</button>
+          </div>
+        </div>`).join('') : `<div class="empty"><div class="empty-icon">🗂</div><div style="margin-bottom:8px">No lists yet</div><div style="font-size:11px;color:var(--muted);margin-bottom:12px">Lists get created automatically when you import a batch of leads — or start one manually.</div><button class="btn btn-primary btn-sm" onclick="showNewListModal()">+ New List</button></div>`}
+    </div>`;
+}
+
+function viewList(listId) {
+  filterList = listId;
+  renderListFilterChips('');
+  renderActiveFilterTags();
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.nav-tab[data-view="table"]')?.classList.add('active');
+  currentView = 'table';
+  ['vPipeline','vTable','vLists','vAdmin','vActivity','vUsers','vSettings'].forEach(vid => {
+    document.getElementById(vid).style.display = 'none';
+  });
+  document.getElementById('vTable').style.display = 'block';
+  renderAll();
+}
+
+async function showNewListModal() {
+  const name = prompt('New list name:');
+  if (!name || !name.trim()) return;
+  const { data, error } = await sb.from('lists').insert({ name: name.trim(), created_by: currentUser.id, color: randomListColor() }).select().single();
+  if (error) { toast('❌ ' + error.message); return; }
+  await logActivity(`created list`, data.name);
+  await loadLists(); renderAll(); toast(`✅ List "${data.name}" created`);
+}
+
+async function renameList(id) {
+  const l = allLists.find(z=>z.id===id); if (!l) return;
+  const name = prompt('Rename list:', l.name);
+  if (!name || !name.trim() || name.trim() === l.name) return;
+  const { error } = await sb.from('lists').update({ name: name.trim() }).eq('id', id);
+  if (error) { toast('❌ ' + error.message); return; }
+  await logActivity(`renamed list "${l.name}" to "${name.trim()}"`, '');
+  await loadLists(); renderAll(); toast('✅ List renamed');
+}
+
+async function deleteList(id) {
+  const l = allLists.find(z=>z.id===id); if (!l) return;
+  const n = allLeads.filter(z=>z.list_id===id).length;
+  if (!confirm(`Delete "${l.name}"? ${n} lead${n===1?'':'s'} will stay in the CRM but become unlisted. This can't be undone.`)) return;
+  const { error } = await sb.from('lists').delete().eq('id', id);
+  if (error) { toast('❌ ' + error.message); return; }
+  if (filterList === id) filterList = '';
+  await logActivity(`deleted list "${l.name}"`, '');
+  await loadLists(); await loadLeads(); renderAll(); toast(`🗑 "${l.name}" deleted`);
+}
+
+function showMergeListModal(sourceId) {
+  const source = allLists.find(z=>z.id===sourceId); if (!source) return;
+  const others = allLists.filter(z=>z.id!==sourceId);
+  if (!others.length) { toast('⚠️ No other lists to merge into'); return; }
+  const names = others.map((l,i)=>`${i+1}. ${l.name}`).join('\n');
+  const choice = prompt(`Merge "${source.name}" into which list? All its leads move over and "${source.name}" is deleted.\n\n${names}\n\nEnter the number:`);
+  const idx = parseInt(choice) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= others.length) return;
+  mergeLists(sourceId, others[idx].id);
+}
+
+async function mergeLists(sourceId, targetId) {
+  const source = allLists.find(z=>z.id===sourceId), target = allLists.find(z=>z.id===targetId);
+  if (!source || !target) return;
+  if (!confirm(`Move all leads from "${source.name}" into "${target.name}", then delete "${source.name}"?`)) return;
+  const { error: updErr } = await sb.from('leads').update({ list_id: targetId }).eq('list_id', sourceId);
+  if (updErr) { toast('❌ ' + updErr.message); return; }
+  const { error: delErr } = await sb.from('lists').delete().eq('id', sourceId);
+  if (delErr) { toast('❌ ' + delErr.message); return; }
+  if (filterList === sourceId) filterList = targetId;
+  await logActivity(`merged list "${source.name}" into "${target.name}"`, '');
+  await loadLists(); await loadLeads(); renderAll();
+  toast(`✅ Merged "${source.name}" into "${target.name}"`);
+}
+
 // ── Lead detail panel ────────────────────────────────────────
 function openPanel(id) {
   const l = allLeads.find(x => x.id === id); if (!l) return;
@@ -1508,6 +1676,12 @@ function openPanel(id) {
           ${allUsers.map(u=>`<option value="${u.id}"${l.assigned_to===u.id?' selected':''}>${x(u.full_name||u.email)}</option>`).join('')}
         </select>
       </div></div>` : `<div class="p-row"><div class="p-key">Assigned</div><div class="p-val">${x(assignedUser?.full_name||assignedUser?.email||'—')}</div></div>`}
+      <div class="p-row"><div class="p-key">List</div><div class="p-val">
+        <select class="assign-sel" id="ps-list">
+          <option value="">— No list —</option>
+          ${allLists.map(lst=>`<option value="${x(lst.id)}"${l.list_id===lst.id?' selected':''}>${x(lst.name)}</option>`).join('')}
+        </select>
+      </div></div>
       <div class="p-row"><div class="p-key">Deal value</div><div class="p-val">
         <div class="deal-wrap"><span class="deal-cur">$</span><input class="deal-inp" type="number" id="ps-deal" value="${l.deal_value||''}" placeholder="0" min="0"></div>
       </div></div>
@@ -1564,12 +1738,15 @@ async function savePanel(id) {
   const reminder= document.getElementById('ps-reminder')?.value || null;
   const assignEl = document.getElementById('ps-assign');
   const assignTo = assignEl ? assignEl.value : l.assigned_to;
+  const listEl   = document.getElementById('ps-list');
+  const listId   = listEl ? (listEl.value || null) : l.list_id;
 
   const tl = l.timeline || [];
   if (status !== l.status) tl.push({ text:`Status: ${l.status} → ${status}`, by: navName(), time: new Date().toISOString() });
   if (deal && deal !== l.deal_value) tl.push({ text:`Deal value set to $${deal.toLocaleString()}`, by: navName(), time: new Date().toISOString() });
+  if (listId !== l.list_id) tl.push({ text:`List: ${allLists.find(x=>x.id===l.list_id)?.name||'none'} → ${allLists.find(x=>x.id===listId)?.name||'none'}`, by: navName(), time: new Date().toISOString() });
 
-  const { error } = await sb.from('leads').update({ status, notes, deal_value: deal, reminder, assigned_to: assignTo, timeline: tl }).eq('id', id);
+  const { error } = await sb.from('leads').update({ status, notes, deal_value: deal, reminder, assigned_to: assignTo, list_id: listId, timeline: tl }).eq('id', id);
   if (error) { toast('❌ ' + error.message); return; }
 
   await logActivity(`updated lead`, l.name);
@@ -1620,12 +1797,23 @@ async function doWhatsApp(phone, name, id) {
 }
 
 // ── Import ────────────────────────────────────────────────────
+let lastAutoListName = '';
+
 function showImportModal() {
   const sel = document.getElementById('assignToSel');
   if (isAdmin()) {
     document.getElementById('assignToField').style.display = 'block';
     sel.innerHTML = `<option value="">— myself —</option>` + allUsers.map(u=>`<option value="${u.id}">${x(u.full_name||u.email)}</option>`).join('');
   }
+  const listSel = document.getElementById('importListSel');
+  if (listSel) {
+    listSel.innerHTML = `<option value="__new__">➕ New list</option><option value="">— No list —</option>` +
+      allLists.map(l=>`<option value="${x(l.id)}">${x(l.name)}</option>`).join('');
+    listSel.value = '__new__';
+  }
+  document.getElementById('importListName').value = '';
+  lastAutoListName = '';
+  onImportListSelChange();
   document.getElementById('importModal').classList.add('open');
 }
 function closeImportModal() {
@@ -1633,16 +1821,41 @@ function closeImportModal() {
   document.getElementById('importPaste').value = '';
 }
 
+function onImportListSelChange() {
+  const sel = document.getElementById('importListSel');
+  const nameInput = document.getElementById('importListName');
+  if (!sel || !nameInput) return;
+  nameInput.style.display = sel.value === '__new__' ? 'block' : 'none';
+}
+
+function updateImportListSuggestion() {
+  const nameInput = document.getElementById('importListName');
+  const sel = document.getElementById('importListSel');
+  if (!nameInput || !sel || sel.value !== '__new__') return;
+  const raw = document.getElementById('importPaste').value.trim();
+  if (!raw) return;
+  let arr;
+  try { const p = JSON.parse(raw); arr = Array.isArray(p) ? p : p.leads || []; } catch(e) { return; }
+  const suggestion = suggestListName(arr);
+  if (!nameInput.value || nameInput.value === lastAutoListName) {
+    nameInput.value = suggestion;
+    lastAutoListName = suggestion;
+  }
+}
+
 document.getElementById('importDrop').addEventListener('dragover', e => { e.preventDefault(); });
 document.getElementById('importDrop').addEventListener('drop', async e => {
   e.preventDefault();
   const file = e.dataTransfer.files[0]; if (!file) return;
   document.getElementById('importPaste').value = await file.text();
+  updateImportListSuggestion();
 });
 document.getElementById('importFile').addEventListener('change', async e => {
   const file = e.target.files[0]; if (!file) return;
   document.getElementById('importPaste').value = await file.text();
+  updateImportListSuggestion();
 });
+document.getElementById('importPaste').addEventListener('input', () => updateImportListSuggestion());
 
 async function doImport() {
   const raw = document.getElementById('importPaste').value.trim();
@@ -1655,6 +1868,19 @@ async function doImport() {
 
   const assignTo = document.getElementById('assignToSel')?.value || currentUser.id;
   const targetId = assignTo || currentUser.id;
+
+  let listId = null;
+  const listSel = document.getElementById('importListSel')?.value;
+  if (listSel === '__new__') {
+    const listName = document.getElementById('importListName')?.value.trim() || suggestListName(arr);
+    const { data: newList, error: listErr } = await sb.from('lists')
+      .insert({ name: listName, created_by: currentUser.id, color: randomListColor() })
+      .select().single();
+    if (listErr) { toast('❌ ' + listErr.message); return; }
+    listId = newList.id;
+  } else if (listSel) {
+    listId = listSel;
+  }
 
   let added = 0, skipped = 0;
   for (const l of arr) {
@@ -1677,13 +1903,14 @@ async function doImport() {
       industry: l.industry||l.category||'',
       timeline:[{text:'Imported from Google Maps scraper', by:navName(), time:new Date().toISOString()}],
       assigned_to: targetId, created_by: currentUser.id,
+      list_id: listId,
     };
     const { error } = await sb.from('leads').insert(row);
     if (!error) added++;
   }
 
   await logActivity(`imported ${added} leads`, '');
-  await loadLeads(); renderAll(); closeImportModal();
+  await loadLeads(); await loadLists(); renderAll(); closeImportModal();
   toast(`✅ Imported ${added} leads, skipped ${skipped} duplicates`);
 }
 
@@ -1706,8 +1933,11 @@ async function logActivity(action, leadName) {
 function exportCSV() {
   if (!allLeads.length) { toast('No leads to export'); return; }
   const cols    = ['name','category','rating','reviews','address','city','country','phone','website','domain','hours','score','status','deal_value','notes','industry','maps_url','created_at'];
-  const headers = ['Business Name','Category','Rating','Reviews','Address','City','Country','Phone','Website','Domain','Hours','Score','Status','Deal Value','Notes','Industry','Maps URL','Created At'];
-  const rows = allLeads.map(l => cols.map(c => `"${String(l[c]??'').replace(/"/g,'""')}"`).join(','));
+  const headers = ['Business Name','Category','Rating','Reviews','Address','City','Country','Phone','Website','Domain','Hours','Score','Status','Deal Value','Notes','Industry','Maps URL','Created At','List'];
+  const rows = allLeads.map(l => {
+    const listName = allLists.find(x=>x.id===l.list_id)?.name || '';
+    return [...cols.map(c => `"${String(l[c]??'').replace(/"/g,'""')}"`), `"${listName.replace(/"/g,'""')}"`].join(',');
+  });
   const csv  = [headers.join(','), ...rows].join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
@@ -1782,6 +2012,7 @@ function getFiltered() {
   return allLeads.filter(l => {
     if (filterStatus   && l.status !== filterStatus) return false;
     if (filterAgent    && l.assigned_to !== filterAgent) return false;
+    if (filterList     && l.list_id !== filterList) return false;
     if (filterIndustry && extractIndustry(l).toLowerCase() !== filterIndustry.toLowerCase()) return false;
     if (filterCountry  && extractCountry(l.address||'').toLowerCase() !== filterCountry.toLowerCase()) return false;
     if (filterCity     && extractCity(l.address||'').toLowerCase() !== filterCity.toLowerCase()) return false;
@@ -1800,7 +2031,27 @@ function updateSidebarFilters() {
   renderIndustryList('');
   renderCountryList('');
   renderCityList('');
+  renderListFilterChips('');
   renderActiveFilterTags();
+}
+
+function renderListFilterChips(search='') {
+  const container = document.getElementById('listFilterChips');
+  if (!container) return;
+  const counts = {};
+  allLeads.forEach(l => { if (l.list_id) counts[l.list_id] = (counts[l.list_id]||0)+1; });
+  let entries = allLists.map(lst => ({ ...lst, count: counts[lst.id]||0 }));
+  if (search) entries = entries.filter(l => l.name.toLowerCase().includes(search.toLowerCase()));
+  if (!allLists.length) { container.innerHTML = `<div style="padding:8px;font-size:11px;color:var(--muted);text-align:center">No lists yet — create one on the Lists tab or when importing.</div>`; return; }
+  if (!entries.length) { container.innerHTML = `<div style="padding:8px;font-size:11px;color:var(--muted);text-align:center">None found</div>`; return; }
+  container.innerHTML = `
+    <div class="filter-chip ${!filterList?'active':''}" onclick="setFilter('list','',this)">
+      <span>All leads</span><span class="chip-count">${allLeads.length}</span>
+    </div>` +
+    entries.map(l => `
+      <div class="filter-chip ${filterList===l.id?'active':''}" onclick="setFilter('list','${x(l.id)}',this)">
+        <span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${x(l.color||'#6c47ff')};margin-right:5px"></span>${x(l.name)}</span><span class="chip-count">${l.count}</span>
+      </div>`).join('');
 }
 
 function buildCountMap(fn) {
@@ -1847,12 +2098,14 @@ function setFilter(type, val, el) {
   if (type === 'industry') filterIndustry = val;
   if (type === 'country')  filterCountry  = val;
   if (type === 'city')     filterCity     = val;
+  if (type === 'list')     filterList     = val;
 
   // Re-render the chips in the same section to update active state
   const search = document.getElementById(type + 'Search')?.value || '';
   if (type === 'industry') renderIndustryList(search);
   if (type === 'country')  renderCountryList(search);
   if (type === 'city')     renderCityList(search);
+  if (type === 'list')     renderListFilterChips(search);
   if (type === 'status') {
     document.querySelectorAll('#statusSection .filter-chip').forEach(c => c.classList.toggle('active', c.dataset.val === val || (c.getAttribute('onclick')||'').includes(`'${val}'`)));
   }
@@ -1868,6 +2121,7 @@ function renderActiveFilterTags() {
   if (filterIndustry) tags.push({ label: `Industry: ${filterIndustry}`,clear: ()=>{ filterIndustry=''; renderIndustryList(''); renderActiveFilterTags(); renderAll(); } });
   if (filterCountry)  tags.push({ label: `Country: ${filterCountry}`,  clear: ()=>{ filterCountry='';  renderCountryList('');  renderActiveFilterTags(); renderAll(); } });
   if (filterCity)     tags.push({ label: `City: ${filterCity}`,        clear: ()=>{ filterCity='';     renderCityList('');     renderActiveFilterTags(); renderAll(); } });
+  if (filterList)     tags.push({ label: `List: ${allLists.find(l=>l.id===filterList)?.name||'—'}`, clear: ()=>{ filterList=''; renderListFilterChips(''); renderActiveFilterTags(); renderAll(); } });
   if (filterAgent)    tags.push({ label: `Agent filter`,               clear: ()=>{ filterAgent='';    renderAll(); } });
 
   if (!tags.length) { strip.style.display='none'; return; }
@@ -1879,8 +2133,8 @@ function renderActiveFilterTags() {
 }
 
 function clearAllFilters() {
-  filterStatus = ''; filterIndustry = ''; filterCountry = ''; filterCity = ''; filterAgent = '';
-  renderIndustryList(''); renderCountryList(''); renderCityList('');
+  filterStatus = ''; filterIndustry = ''; filterCountry = ''; filterCity = ''; filterAgent = ''; filterList = '';
+  renderIndustryList(''); renderCountryList(''); renderCityList(''); renderListFilterChips('');
   renderActiveFilterTags(); renderAll();
 }
 
@@ -1919,6 +2173,10 @@ function updateBulkBar() {
     assignBtn.style.display = 'block';
     assignSel.innerHTML = `<option value="">Assign to…</option>` + allUsers.map(u=>`<option value="${u.id}">${x(u.full_name||u.email)}</option>`).join('');
   }
+  const listSel = document.getElementById('bulkListSel');
+  if (listSel) {
+    listSel.innerHTML = `<option value="">Add to list…</option>` + allLists.map(l=>`<option value="${x(l.id)}">${x(l.name)}</option>`).join('');
+  }
 }
 
 function clearSelection() { selectedIds.clear(); updateBulkBar(); renderAll(); }
@@ -1948,6 +2206,20 @@ async function applyBulkAssign() {
   }
   await logActivity(`bulk assigned ${ids.length} leads to ${user?.full_name}`, '');
   clearSelection(); await loadLeads(); renderAll(); toast(`✅ ${ids.length} leads assigned`);
+}
+
+async function applyBulkList() {
+  const lid = document.getElementById('bulkListSel').value;
+  if (!lid) { toast('⚠️ Pick a list first'); return; }
+  const ids = [...selectedIds];
+  const list = allLists.find(l=>l.id===lid);
+  for (const id of ids) {
+    const l = allLeads.find(x=>x.id===id); if (!l) continue;
+    const tl = [...(l.timeline||[]), {text:`Added to list "${list?.name||'list'}"`, by:navName(), time:new Date().toISOString()}];
+    await sb.from('leads').update({list_id:lid, timeline:tl}).eq('id',id);
+  }
+  await logActivity(`bulk added ${ids.length} leads to list "${list?.name}"`, '');
+  clearSelection(); await loadLeads(); renderAll(); toast(`✅ ${ids.length} leads added to "${list?.name}"`);
 }
 
 async function applyBulkDelete() {
@@ -2176,7 +2448,7 @@ document.querySelectorAll('.mob-nav-item').forEach(item => {
     if (matchingTab) matchingTab.classList.add('active');
     currentView = item.dataset.view;
     document.getElementById('tbTitle')?.textContent;
-    ['vPipeline','vTable','vAdmin','vActivity','vUsers','vSettings'].forEach(id => {
+    ['vPipeline','vTable','vLists','vAdmin','vActivity','vUsers','vSettings'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
@@ -2219,6 +2491,11 @@ function showAddLeadModal() {
     const el=document.getElementById(id);
     if(el) el.value = id==='al-status'?'new':'';
   });
+  const listSel = document.getElementById('al-list');
+  if (listSel) {
+    listSel.innerHTML = `<option value="">— No list —</option>` +
+      allLists.map(l=>`<option value="${x(l.id)}">${x(l.name)}</option>`).join('');
+  }
   document.getElementById('addLeadModal').classList.add('open');
   setTimeout(()=>document.getElementById('al-name')?.focus(), 100);
 }
@@ -2238,6 +2515,7 @@ async function saveNewLead() {
   const reminder = get('al-reminder') || null;
   const statusVal= document.getElementById('al-status')?.value || 'new';
   const assignTo = document.getElementById('al-assign')?.value || currentUser.id;
+  const listId   = document.getElementById('al-list')?.value || null;
 
   let domain = '';
   try { domain = website ? new URL(website.startsWith('http')?website:'https://'+website).hostname.replace(/^www\./,'') : ''; } catch(_){}
@@ -2255,6 +2533,7 @@ async function saveNewLead() {
     timeline: [{text:'Lead added manually', by:navName(), time:new Date().toISOString()}],
     assigned_to: assignTo || currentUser.id,
     created_by: currentUser.id,
+    list_id: listId,
   };
 
   const btn = document.querySelector('#addLeadModal .btn-primary');
@@ -2278,7 +2557,12 @@ function showBulkEditModal() {
     sel.innerHTML = `<option value="">— keep current —</option>` +
       allUsers.map(u=>`<option value="${u.id}">${x(u.full_name||u.email)}</option>`).join('');
   }
-  ['be-status','be-score'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const listSel = document.getElementById('be-list');
+  if (listSel) {
+    listSel.innerHTML = `<option value="">— keep current —</option><option value="__none__">— No list —</option>` +
+      allLists.map(l=>`<option value="${x(l.id)}">${x(l.name)}</option>`).join('');
+  }
+  ['be-status','be-score','be-list'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('bulkEditModal').classList.add('open');
 }
 
@@ -2286,7 +2570,9 @@ async function applyBulkEdit() {
   const newStatus = document.getElementById('be-status')?.value;
   const newAssign = document.getElementById('be-assign')?.value;
   const newScore  = document.getElementById('be-score')?.value;
-  if (!newStatus && !newAssign && !newScore) { toast('⚠️ Select at least one change'); return; }
+  const newListRaw= document.getElementById('be-list')?.value;
+  const newList   = newListRaw === '__none__' ? null : (newListRaw || undefined);
+  if (!newStatus && !newAssign && !newScore && !newListRaw) { toast('⚠️ Select at least one change'); return; }
 
   const ids = [...selectedIds]; let changed = 0;
   for (const id of ids) {
@@ -2296,6 +2582,7 @@ async function applyBulkEdit() {
     if (newStatus && newStatus!==l.status) { update.status=newStatus; tl.push({text:`Bulk status → ${newStatus}`,by:navName(),time:new Date().toISOString()}); }
     if (newAssign && newAssign!==l.assigned_to) { update.assigned_to=newAssign; tl.push({text:`Bulk assigned`,by:navName(),time:new Date().toISOString()}); }
     if (newScore  && newScore !==l.score)  update.score=newScore;
+    if (newListRaw && newList!==l.list_id) { update.list_id=newList; tl.push({text:`Bulk list change`,by:navName(),time:new Date().toISOString()}); }
     if (Object.keys(update).length) { update.timeline=tl; await sb.from('leads').update(update).eq('id',id); changed++; }
   }
   await logActivity(`bulk edited ${changed} leads`,'');
